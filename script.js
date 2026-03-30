@@ -7,9 +7,18 @@ let collisionChecker; // Detects collisions between drops and the can
 let elapsedSeconds = 0; // Total active play time in seconds
 let speedStep = 0; // Increases every 30 seconds to speed up spawning
 let score = 0;
+let health = 5;
+let maxHealth = 5;
 let gameOver = false;
+let hasStartedAtLeastOnce = false;
+let hasRoundStarted = false;
 
 const HIGH_SCORE_KEY = "waterDropHighScore";
+const DIFFICULTY_HEALTH_MAP = {
+  easy: 5,
+  normal: 3,
+  hard: 1
+};
 
 const WATER_DROP_BASE_SPAWN_MS = 1000;
 const POLUTION_CLOUD_BASE_SPAWN_MS = 5000;
@@ -29,13 +38,17 @@ const CLOUD_HITBOX_INSET_X_RATIO = 0.22;
 const CLOUD_HITBOX_INSET_Y_RATIO = 0.25;
 
 const startButton = document.getElementById("start-btn");
+const quickRestartButton = document.getElementById("quick-restart-btn");
 const timeDisplay = document.getElementById("time");
 const scoreDisplay = document.getElementById("score");
+const highScoreCurrentDisplay = document.getElementById("high-score-current");
+const difficultySelect = document.getElementById("difficulty-select");
+const healthDisplay = document.getElementById("health-display");
 const gameContainer = document.getElementById("game-container");
 const waterCan = document.getElementById("water-can");
 const loseModal = document.getElementById("lose-modal");
 const finalScoreDisplay = document.getElementById("final-score");
-const highScoreDisplay = document.getElementById("high-score");
+const modalActions = document.getElementById("modal-actions");
 const restartButton = document.getElementById("restart-btn");
 
 let isDraggingCan = false;
@@ -45,12 +58,16 @@ let activePointerId = null;
 // Show timer starting at 0 before the game begins
 timeDisplay.textContent = elapsedSeconds;
 scoreDisplay.textContent = score;
+highScoreCurrentDisplay.textContent = getStoredHighScore();
+syncHealthFromSelectedDifficulty();
 updateGameContainerMetrics();
 
 // Wait for button click to start the game
 startButton.addEventListener("click", startGame);
+quickRestartButton.addEventListener("click", restartGame);
 restartButton.addEventListener("click", restartGame);
 window.addEventListener("resize", updateGameContainerMetrics);
+difficultySelect.addEventListener("change", handleDifficultyChange);
 
 // Prevent browser image drag behavior and enable controlled dragging
 waterCan.draggable = false;
@@ -89,6 +106,11 @@ window.addEventListener("pointercancel", (event) => {
 function startGame() {
   if (gameOver) return;
 
+  if (!hasStartedAtLeastOnce) {
+    hasStartedAtLeastOnce = true;
+    ensureDonateButton();
+  }
+
   // If running, pause the game
   if (gameRunning) {
     stopSpawnTimers();
@@ -101,7 +123,13 @@ function startGame() {
   }
 
   // If paused/stopped, start the game
+  if (!hasRoundStarted) {
+    syncHealthFromSelectedDifficulty();
+    hasRoundStarted = true;
+  }
+
   gameRunning = true;
+  difficultySelect.disabled = true;
   startButton.textContent = "Pause";
   setDropsPaused(false);
 
@@ -252,10 +280,43 @@ function checkCollisions() {
     );
 
     if (isRectOverlapping(cloudRect, canRect)) {
-      endGame();
+      cloud.remove();
+      health = Math.max(0, health - 1);
+      renderHealthDisplay();
+
+      if (health <= 0) {
+        endGame();
+      }
       break;
     }
   }
+}
+
+function handleDifficultyChange() {
+  if (gameRunning || gameOver || hasRoundStarted) {
+    difficultySelect.value = getDifficultyFromHealth(maxHealth);
+    return;
+  }
+
+  syncHealthFromSelectedDifficulty();
+}
+
+function getDifficultyFromHealth(healthValue) {
+  if (healthValue === DIFFICULTY_HEALTH_MAP.hard) return "hard";
+  if (healthValue === DIFFICULTY_HEALTH_MAP.normal) return "normal";
+  return "easy";
+}
+
+function syncHealthFromSelectedDifficulty() {
+  maxHealth = DIFFICULTY_HEALTH_MAP[difficultySelect.value] || DIFFICULTY_HEALTH_MAP.easy;
+  health = maxHealth;
+  renderHealthDisplay();
+}
+
+function renderHealthDisplay() {
+  healthDisplay.innerHTML =
+    '<span class="material-symbols-outlined health-icon" aria-hidden="true">water_pump</span>' +
+    `<span class="health-value" aria-label="Health points">${health}</span>`;
 }
 
 function insetRect(rect, insetX, insetY) {
@@ -287,25 +348,48 @@ function endGame() {
 
   gameOver = true;
   gameRunning = false;
+  hasRoundStarted = false;
   stopSpawnTimers();
   clearInterval(timerInterval);
   clearInterval(collisionChecker);
   setDropsPaused(true);
+  difficultySelect.disabled = false;
 
   const highScoreResult = updateHighScore(score);
 
   finalScoreDisplay.textContent = score;
-  highScoreDisplay.textContent = highScoreResult.highScore;
-  highScoreDisplay.classList.toggle("new-high-score", highScoreResult.isNewHighScore);
+  highScoreCurrentDisplay.textContent = highScoreResult.highScore;
+  highScoreCurrentDisplay.classList.toggle(
+    "new-high-score",
+    highScoreResult.isNewHighScore
+  );
 
   loseModal.classList.remove("hidden");
   startButton.textContent = "Start";
   startButton.disabled = true;
 }
 
-function updateHighScore(finalScore) {
+function getStoredHighScore() {
   const storedValue = Number(localStorage.getItem(HIGH_SCORE_KEY));
-  const previousHighScore = Number.isFinite(storedValue) ? storedValue : 0;
+  return Number.isFinite(storedValue) ? storedValue : 0;
+}
+
+function ensureDonateButton() {
+  if (!modalActions || document.getElementById("donate-btn")) return;
+
+  const donateButton = document.createElement("a");
+  donateButton.id = "donate-btn";
+  donateButton.className = "donate-btn";
+  donateButton.href = "https://www.charitywater.org/donate";
+  donateButton.target = "_blank";
+  donateButton.rel = "noopener noreferrer";
+  donateButton.textContent = "Donate";
+
+  modalActions.insertBefore(donateButton, restartButton);
+}
+
+function updateHighScore(finalScore) {
+  const previousHighScore = getStoredHighScore();
 
   const isNewHighScore =
     previousHighScore <= 0 ? finalScore > 0 : finalScore > previousHighScore;
@@ -342,6 +426,7 @@ function restartGame() {
 
   gameRunning = false;
   gameOver = false;
+  hasRoundStarted = false;
   elapsedSeconds = 0;
   speedStep = 0;
   score = 0;
@@ -350,10 +435,14 @@ function restartGame() {
 
   timeDisplay.textContent = elapsedSeconds;
   scoreDisplay.textContent = score;
+  syncHealthFromSelectedDifficulty();
+  highScoreCurrentDisplay.textContent = getStoredHighScore();
+  highScoreCurrentDisplay.classList.remove("new-high-score");
   loseModal.classList.add("hidden");
 
   startButton.disabled = false;
   startButton.textContent = "Start";
+  difficultySelect.disabled = false;
 
   waterCan.style.left = "50%";
   waterCan.style.transform = "translateX(-50%)";
