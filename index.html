@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Water Drop Game</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="game-wrapper">
+        <h1 class="game-title">WaterFront</h1>
+        <p class="game-tagline">Collect the water drops, and avoid the pollution clouds!</p>
+        <div class="score-panel">
+            <div class="score">Score: <span id="score">0</span></div>
+            <div class="timer">Time: <span id="time"></span>s</div>
+            <button id="start-btn">Start</button>
+        </div>
+        
+        <div id="game-container">
+            <img id="water-can" src="img/water-can-transparent.png" alt="Water can">
+        </div>
+    </div>
+
+    <div id="lose-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="lose-title">
+        <div class="modal-card">
+            <h2 id="lose-title">You Lose</h2>
+            <p class="final-score-text">Final score: <span id="final-score">0</span></p>
+            <p class="high-score-text">High score: <span id="high-score">0</span></p>
+            <img class="charity-logo" src="img/cw_logo-horizontal.png" alt="charity: water logo">
+            <p class="charity-message">Our work to end the water crisis needs your support. You can help open the door to education, income, dignity, and health - especially for women and children.</p>
+            <a class="donate-btn" href="https://www.charitywater.org/donate" target="_blank" rel="noopener noreferrer">Donate</a>
+            <button id="restart-btn" type="button">Restart</button>
+        </div>
+    </div>
+    <script
+            src="https://cdn.jsdelivr.net/npm/@tsparticles/confetti@3.0.3/tsparticles.confetti.bundle.min.js"></script>
+            
+    <script src="script.js"></script>
+</body>
+</html>
