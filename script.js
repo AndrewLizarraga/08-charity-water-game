@@ -36,6 +36,11 @@ const DROP_HITBOX_INSET_X_RATIO = 0.2;
 const DROP_HITBOX_INSET_Y_RATIO = 0.2;
 const CLOUD_HITBOX_INSET_X_RATIO = 0.22;
 const CLOUD_HITBOX_INSET_Y_RATIO = 0.25;
+const START_AUDIO_SRC = "img/audio/freesound_community-game-start-6104.mp3";
+const DROP_COLLECT_AUDIO_SRC = "img/audio/spinopel-blow-to-a-fragile-object-456376.mp3";
+const CLOUD_HIT_AUDIO_SRC = "img/audio/driken5482-retro-explode-1-236678.mp3";
+const HIGH_SCORE_CLAP_AUDIO_SRC = "img/audio/highscore-clap.mp3";
+const GAME_OVER_AUDIO_SRC = "img/audio/game-over-arcade.mp3";
 
 const startButton = document.getElementById("start-btn");
 const quickRestartButton = document.getElementById("quick-restart-btn");
@@ -50,6 +55,17 @@ const loseModal = document.getElementById("lose-modal");
 const finalScoreDisplay = document.getElementById("final-score");
 const modalActions = document.getElementById("modal-actions");
 const restartButton = document.getElementById("restart-btn");
+
+const gameStartAudio = new Audio(START_AUDIO_SRC);
+gameStartAudio.preload = "auto";
+const dropCollectAudio = new Audio(DROP_COLLECT_AUDIO_SRC);
+dropCollectAudio.preload = "auto";
+const cloudHitAudio = new Audio(CLOUD_HIT_AUDIO_SRC);
+cloudHitAudio.preload = "auto";
+const highScoreClapAudio = new Audio(HIGH_SCORE_CLAP_AUDIO_SRC);
+highScoreClapAudio.preload = "auto";
+const gameOverAudio = new Audio(GAME_OVER_AUDIO_SRC);
+gameOverAudio.preload= "auto";
 
 let isDraggingCan = false;
 let canDragOffsetX = 0;
@@ -129,6 +145,7 @@ function startGame() {
   }
 
   gameRunning = true;
+  playGameStartAudio();
   difficultySelect.disabled = true;
   startButton.textContent = "Pause";
   setDropsPaused(false);
@@ -268,6 +285,7 @@ function checkCollisions() {
     drop.dataset.caught = "true";
     score += Number(drop.dataset.size || 0);
     scoreDisplay.textContent = score;
+    playDropCollectAudio();
     drop.remove();
   });
 
@@ -281,6 +299,7 @@ function checkCollisions() {
 
     if (isRectOverlapping(cloudRect, canRect)) {
       cloud.remove();
+      playCloudHitAudio();
       health = Math.max(0, health - 1);
       renderHealthDisplay();
 
@@ -353,6 +372,7 @@ function endGame() {
   clearInterval(timerInterval);
   clearInterval(collisionChecker);
   setDropsPaused(true);
+  playGameOverAudio();
   difficultySelect.disabled = false;
 
   const highScoreResult = updateHighScore(score);
@@ -398,6 +418,7 @@ function updateHighScore(finalScore) {
 
   if (isNewHighScore) {
     localStorage.setItem(HIGH_SCORE_KEY, String(finalScore));
+    playHighScoreClapAudio();
     confetti({
       particleCount: 300,
       spread: 90,
@@ -420,6 +441,10 @@ function clearFallingObjects() {
 }
 
 function restartGame() {
+  playGameStartAudio();
+  gameOverAudio.pause();
+  gameOverAudio.currentTime = 0;
+
   stopSpawnTimers();
   clearInterval(timerInterval);
   clearInterval(collisionChecker);
@@ -447,6 +472,45 @@ function restartGame() {
   waterCan.style.left = "50%";
   waterCan.style.transform = "translateX(-50%)";
   updateGameContainerMetrics();
+}
+
+function playGameStartAudio() {
+  gameStartAudio.currentTime = 0;
+  gameStartAudio.play().catch(() => {
+    // Ignore playback errors when the browser temporarily blocks audio.
+  });
+}
+
+function playDropCollectAudio() {
+  const overlapSafeAudio = dropCollectAudio.cloneNode();
+  overlapSafeAudio.volume = 0.65;
+  overlapSafeAudio.play().catch(() => {
+    // Ignore playback errors when the browser temporarily blocks audio.
+  });
+}
+
+function playCloudHitAudio() {
+  const overlapSafeAudio = cloudHitAudio.cloneNode();
+  overlapSafeAudio.volume = 0.7;
+  overlapSafeAudio.play().catch(() => {
+    // Ignore playback errors when the browser temporarily blocks audio.
+  });
+}
+
+function playHighScoreClapAudio() {
+  highScoreClapAudio.currentTime = 0;
+  highScoreClapAudio.volume = 0.75;
+  highScoreClapAudio.play().catch(() => {
+    // Ignore playback errors when the browser temporarily blocks audio.
+  });
+}
+
+function playGameOverAudio() {
+  gameOverAudio.currentTime = 0;
+  gameOverAudio.volume = 0.8;
+  gameOverAudio.play().catch(() => {
+    // Ignore playback errors when the browser temporarily blocks audio.
+  });
 }
 
 function createPolutionCloud() {

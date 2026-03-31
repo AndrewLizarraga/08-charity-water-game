@@ -26,6 +26,7 @@ Fonts:
 
 body {
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
@@ -34,7 +35,62 @@ body {
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    font-family: Arial, sans-serif;
+    font-family: "Avenir Next", Avenir, "Proxima Nova", "Helvetica Neue", Arial, sans-serif;
+}
+
+footer {
+    width: min(800px, 95vw);
+    margin-top: 20px;
+    padding: 18px 20px;
+    border-radius: 12px;
+    background: rgba(46, 157, 247, 0.92);
+    border: 2px solid #ffc907;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+    color: #ffffff;
+    text-align: center;
+    font-family: "Avenir Next", Avenir, "Proxima Nova", "Helvetica Neue", Arial, sans-serif;
+}
+
+#charity-logo-footer {
+    display: block;
+    width: min(220px, 78%);
+    margin: 0 auto 12px;
+    background-color: transparent;
+}
+
+footer p {
+    margin-bottom: 12px;
+    line-height: 1.45;
+    font-size: 17px;
+    font-weight: 600;
+}
+
+footer .donate-btn {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 12px 22px;
+    border-radius: 999px;
+    border: 2px solid #ffc907;
+    background: #ffc907;
+    color: #131313;
+    font-size: 16px;
+    font-weight: 800;
+    text-decoration: none;
+    letter-spacing: 0.2px;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+}
+
+footer .donate-btn:hover {
+    background: #ffffff;
+    color: #2e9df7;
+    text-decoration: none;
+    transform: translateY(-1px);
+    box-shadow: 0 9px 16px rgba(0, 0, 0, 0.25);
+}
+
+footer .donate-btn:active {
+    transform: translateY(0);
 }
 
 .game-wrapper {
@@ -77,13 +133,18 @@ body {
 }
 
 #difficulty-select {
-    border: 1px solid #3d3d3d;
+    border: 2px solid #1f1f1f;
     border-radius: 6px;
     padding: 6px 8px;
     font-size: 14px;
     font-weight: 600;
-    background: #ffffff;
-    color: #1f1f1f;
+    background: rgba(255, 201, 7, 0.96);
+    color: #131313;
+}
+
+#difficulty-select:focus-visible {
+    outline: 2px solid #2e9df7;
+    outline-offset: 1px;
 }
 
 #difficulty-select:disabled {
@@ -355,7 +416,7 @@ body {
 }
 
 .new-high-score {
-    color: #159a48;
+        color: #159a48;
 }
 
 @keyframes dropFall {
