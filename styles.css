@@ -100,6 +100,12 @@ footer .donate-btn:active {
     gap: 20px;
 }
 
+.game-title-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
 .score-panel {
     display: flex;
     justify-content: space-between;  /* Space between score and button */
